@@ -428,4 +428,5 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
 
     return $element;
   }
+
 }
