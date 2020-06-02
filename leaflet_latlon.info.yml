@@ -1,0 +1,7 @@
+name: Leaflet LatLon
+description: Integration with the Leaflet map module.
+core_version_requirement: ^8 || ^9
+type: module
+dependencies:
+  - leaflet:leaflet
+  - drupal:views
