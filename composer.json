@@ -1,0 +1,28 @@
+{
+    "name": "drupal/leaflet_latlon",
+    "description": "Integration with the Leaflet map module.",
+    "type": "drupal-module",
+    "homepage": "https://www.drupal.org/project/leaflet_latlon",
+    "authors": [
+        {
+            "name": "Sarath Kumar M (sarathkm)",
+            "homepage": "https://www.drupal.org/u/sarathkm",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://drupal.org/project/issues/leaflet_latlon",
+        "source": "https://git.drupalcode.org/project/leaflet_latlon"
+    },
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "repositories": {
+        "drupal": {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    },
+    "require": {
+        "drupal/leaflet": "^1.33"
+    }
+}
