@@ -8,6 +8,11 @@
             "name": "Sarath Kumar M (sarathkm)",
             "homepage": "https://www.drupal.org/u/sarathkm",
             "role": "Maintainer"
+        },
+        {
+            "name": "Jon Goldberg",
+            "homepage": "https://www.megaphonetech.com",
+            "role": "Leaflet 2.x compatibility"
         }
     ],
     "support": {
@@ -23,6 +28,6 @@
         }
     },
     "require": {
-        "drupal/leaflet": "^1.33"
+        "drupal/leaflet": "^2.0"
     }
 }
