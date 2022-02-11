@@ -38,7 +38,7 @@ class LeafletLatLonMap extends LeafletMap {
    * {@inheritdoc}
    */
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    parent::init($view, $display, $options);
+    StylePluginBase::init($view, $display, $options);
   }
 
   /**
