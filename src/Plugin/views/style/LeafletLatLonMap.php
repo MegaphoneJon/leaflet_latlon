@@ -5,16 +5,10 @@ namespace Drupal\leaflet_latlon\Plugin\views\style;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\style\StylePluginBase;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Core\Render\RendererInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Leaflet\LeafletService;
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Utility\LinkGeneratorInterface;
-use Drupal\leaflet\LeafletSettingsElementsTrait;
+use Drupal\leaflet_views\Plugin\views\style\LeafletMap;
+use Drupal\views\ViewExecutable;
+use Drupal\views\Plugin\views\display\DisplayPluginBase;
 
 /**
  * Style plugin to render a view output as a leaflet map.
@@ -31,16 +25,7 @@ use Drupal\leaflet\LeafletSettingsElementsTrait;
  *   theme = "leaflet-map"
  * )
  */
-class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPluginInterface {
-
-  use LeafletSettingsElementsTrait;
-
-  /**
-   * The Default Settings.
-   *
-   * @var array
-   */
-  protected $defaultSettings;
+class LeafletLatLonMap extends LeafletMap {
 
   /**
    * Specifies if the plugin uses row plugins.
@@ -52,116 +37,8 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
   /**
    * {@inheritdoc}
    */
-  protected $usesFields = TRUE;
-
-  /**
-   * Current user service.
-   *
-   * @var \Drupal\Core\Session\AccountInterface
-   */
-  protected $currentUser;
-
-  /**
-   * The messenger.
-   *
-   * @var \Drupal\Core\Messenger\MessengerInterface
-   */
-  protected $messenger;
-
-
-  /**
-   * The Renderer service property.
-   *
-   * @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface
-   */
-  protected $renderer;
-
-  /**
-   * The module handler to invoke the alter hook.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
-
-  /**
-   * Leaflet service.
-   *
-   * @var \Drupal\Leaflet\LeafletService
-   */
-  protected $leafletService;
-
-  /**
-   * The Link generator Service.
-   *
-   * @var \Drupal\Core\Utility\LinkGeneratorInterface
-   */
-  protected $link;
-
-  /**
-   * The list of fields added to the view.
-   *
-   * @var array
-   */
-  protected $viewFields = [];
-
-  /**
-   * Constructs a LeafletMap style instance.
-   *
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The plugin_id for the formatter.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\Core\Session\AccountInterface $current_user
-   *   Current user service.
-   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
-   *   The messenger.
-   * @param \Drupal\Core\Render\RendererInterface $renderer
-   *   The renderer.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   The module handler.
-   * @param \Drupal\Leaflet\LeafletService $leaflet_service
-   *   The Leaflet service.
-   * @param \Drupal\Core\Utility\LinkGeneratorInterface $link_generator
-   *   The Link Generator service.
-   */
-  public function __construct(
-    array $configuration,
-    $plugin_id,
-    $plugin_definition,
-    AccountInterface $current_user,
-    MessengerInterface $messenger,
-    RendererInterface $renderer,
-    ModuleHandlerInterface $module_handler,
-    LeafletService $leaflet_service,
-    LinkGeneratorInterface $link_generator
-    ) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->defaultSettings = self::getDefaultSettings();
-    $this->currentUser = $current_user;
-    $this->messenger = $messenger;
-    $this->renderer = $renderer;
-    $this->moduleHandler = $module_handler;
-    $this->leafletService = $leaflet_service;
-    $this->link = $link_generator;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('current_user'),
-      $container->get('messenger'),
-      $container->get('renderer'),
-      $container->get('module_handler'),
-      $container->get('leaflet.service'),
-      $container->get('link_generator')
-    );
+  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+    parent::init($view, $display, $options);
   }
 
   /**
@@ -171,8 +48,8 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
     $options = parent::defineOptions();
     $options['leaflet_geo']['leaflet_lat'] = ['default' => ''];
     $options['leaflet_geo']['leaflet_long'] = ['default' => ''];
-    $opions['name_field'] = ['default' => ''];
-    $opions['description_field'] = ['default' => ''];
+    $options['name_field'] = ['default' => ''];
+    $options['description_field'] = ['default' => ''];
     $options['icon']['default'] = [
       'iconUrl' => '',
       'shadowUrl' => '',
@@ -211,7 +88,7 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
    * {@inheritdoc}
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
-    parent::buildOptionsForm($form, $form_state);
+    StylePluginBase::buildOptionsForm($form, $form_state);
     $options = $this->displayHandler->getFieldLabels(TRUE);
 
     $form['#attached'] = [
@@ -287,9 +164,6 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
    * Renders the View.
    */
   public function render() {
-    // Performs some preprocess on the leaflet map settings.
-    $this->leafletService->preProcessMapSettings($this->options);
-
     $data = [];
 
     // Collect bubbleable metadata when doing early rendering.
@@ -352,6 +226,12 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
             $this->options['icon'] = array_replace($map['icon'], $this->options['icon']);
           }
 
+          // Define possible tokens.
+          $tokens = [];
+          foreach ($this->rendered_fields[$result->index] as $field_name => $field_value) {
+            $tokens[$field_name] = $field_value;
+            $tokens["{{ $field_name }}"] = $field_value;
+          }
           $icon_type = isset($this->options['icon']['iconType']) ? $this->options['icon']['iconType'] : 'marker';
 
           // Relates the feature with additional properties.
@@ -383,20 +263,29 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
                 default:
                   if (!empty($this->options['icon']['iconUrl'])) {
                     $feature['icon']['iconUrl'] = str_replace(["\n", "\r"], "", $this->viewsTokenReplace($this->options['icon']['iconUrl'], $tokens));
+                    // Generate correct Absolute iconUrl & shadowUrl,
+                    // if not external.
+                    if (!empty($feature['icon']['iconUrl'])) {
+                      $feature['icon']['iconUrl'] = $this->leafletService->pathToAbsolute($feature['icon']['iconUrl']);
+                    }
                     if (!empty($this->options['icon']['shadowUrl'])) {
                       $feature['icon']['shadowUrl'] = str_replace(["\n", "\r"], "", $this->viewsTokenReplace($this->options['icon']['shadowUrl'], $tokens));
+                      if (!empty($feature['icon']['shadowUrl'])) {
+                        $feature['icon']['shadowUrl'] = $this->leafletService->pathToAbsolute($feature['icon']['shadowUrl']);
+                      }
                     }
                   }
+
+                  // Set the Feature IconSize and ShadowSize to the IconUrl or
+                  // ShadowUrl Image sizes (if empty or invalid).
+                  $this->leafletService->setFeatureIconSizesIfEmptyOrInvalid($feature);
                   break;
               }
             }
 
-            // Allow modules to adjust the marker.
-            \Drupal::moduleHandler()->alter('leaflet_views_feature', $feature, $result, $this->view->rowPlugin);
+            // Add new points to the whole basket.
+            $data = array_merge($data, $features);
           }
-
-          // Add new points to the whole basket.
-          $data = array_merge($data, $features);
         }
       }
     }
@@ -406,6 +295,9 @@ class LeafletLatLonMap extends StylePluginBase implements ContainerFactoryPlugin
     if (empty($data) && !empty($this->options['hide_empty_map'])) {
       return [];
     }
+
+    // Order the data features based on the 'weight' element.
+    uasort($data, ['Drupal\Component\Utility\SortArray', 'sortByWeightElement']);
 
     $js_settings = [
       'map' => $map,
