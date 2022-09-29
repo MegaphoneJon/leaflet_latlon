@@ -28,6 +28,6 @@
         }
     },
     "require": {
-        "drupal/leaflet": "^2.0"
+        "drupal/leaflet": "^2.2.9"
     }
 }
